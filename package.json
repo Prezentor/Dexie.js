@@ -1,5 +1,5 @@
 {
-  "name": "dexie",
+  "name": "@prezentor/dexie",
   "version": "3.0.1",
   "description": "A Minimalistic Wrapper for IndexedDB",
   "main": "dist/dexie.js",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/dfahlander/Dexie.js.git"
+    "url": "https://github.com/Prezentor/Dexie.js"
   },
   "keywords": [
     "indexeddb",
