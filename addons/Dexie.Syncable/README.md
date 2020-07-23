@@ -5,8 +5,8 @@ Enables two-way synchronization with remote database.
 ### Install
 ```
 npm install dexie --save
-npm install dexie-observable --save
-npm install dexie-syncable --save
+npm install '@prezentor/dexie-observable' --save
+npm install '@prezentor/dexie-syncable' --save
 ```
 
 ### Use
@@ -41,7 +41,7 @@ In your HTML, make sure to include Dexie.js, Dexie.Observable.js, Dexie.Syncable
         ...
     </head><body>
     </body></html>
-    
+
 ##### Usage with existing DB
 
 In case you want to use Dexie.Syncable with your existing database, but do not want to use UUID based Primary Keys as described below, you will have to do a schema upgrade. Without it Dexie.Syncable will not be able to properly work.

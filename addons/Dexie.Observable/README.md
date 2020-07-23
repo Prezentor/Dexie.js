@@ -5,7 +5,7 @@ Observe changes to database - even when they happen in another browser window.
 ### Install
 ```
 npm install dexie --save
-npm install dexie-observable --save
+npm install '@prezentor/dexie-observable' --save
 ```
 
 ### Use
