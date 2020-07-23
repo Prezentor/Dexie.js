@@ -1,4 +1,4 @@
-/* ========================================================================== 
+/* ==========================================================================
  *                           dexie-observable.js
  * ==========================================================================
  *
@@ -17,7 +17,7 @@
  * http://dexie.org
  *
  * Apache License Version 2.0, January 2004, http://www.apache.org/licenses/
- * 
+ *
  */
 import Dexie from 'dexie';
 import { nop, promisableChain, createUUID } from './utils';
@@ -60,13 +60,13 @@ export default function Observable(db) {
     ///   Extension to Dexie providing Syncronization capabilities to Dexie.
     /// </summary>
     /// <param name="db" type="Dexie"></param>
-
-    var NODE_TIMEOUT = 20000, // 20 seconds before local db instances are timed out. This is so that old changes can be deleted when not needed and to garbage collect old _syncNodes objects.
-        HIBERNATE_GRACE_PERIOD = 20000, // 20 seconds
-        // LOCAL_POLL: The time to wait before polling local db for changes and cleaning up old nodes. 
+    var _timers = Observable._timers || {};
+    var NODE_TIMEOUT = _timers.NODE_TIMEOUT || 20000, // 20 seconds before local db instances are timed out. This is so that old changes can be deleted when not needed and to garbage collect old _syncNodes objects.
+        HIBERNATE_GRACE_PERIOD = _timers.HIBERNATE_GRACE_PERIOD || 20000, // 20 seconds
+        // LOCAL_POLL: The time to wait before polling local db for changes and cleaning up old nodes.
         // Polling for changes is a fallback only needed in certain circomstances (when the onstorage event doesnt reach all listeners - when different browser windows doesnt share the same process)
-        LOCAL_POLL = 500, // 500 ms. In real-world there will be this value + the time it takes to poll(). A small value is needed in Workers where we cannot rely on storage event.
-        HEARTBEAT_INTERVAL = NODE_TIMEOUT - 5000;
+        LOCAL_POLL = _timers.LOCAL_POLL || 500, // 500 ms. In real-world there will be this value + the time it takes to poll(). A small value is needed in Workers where we cannot rely on storage event.
+        HEARTBEAT_INTERVAL = _timers.HEARTBEAT_INTERVAL || NODE_TIMEOUT - 5000;
 
     var localStorage = Observable.localStorageImpl;
 
@@ -84,7 +84,7 @@ export default function Observable(db) {
         isMaster: Number, // 1 if true. Not using Boolean because it's not possible to index Booleans in IE implementation of IDB.
 
         // Below properties should be extended in Dexie.Syncable. Not here. They apply to remote nodes only (type == "remote"):
-        syncProtocol: String, // Tells which implementation of ISyncProtocol to use for remote syncing. 
+        syncProtocol: String, // Tells which implementation of ISyncProtocol to use for remote syncing.
         syncContext: null,
         syncOptions: Object,
         connected: false, // FIXTHIS: Remove! Replace with status.
@@ -215,7 +215,7 @@ export default function Observable(db) {
     // When db opens, make sure to start monitor any changes before other db operations will start.
     db.on("ready", function startObserving() {
         if (db.dynamicallyOpened()) return db; // Don't observe dynamically opened databases.
-        
+
         return db.table("_changes").orderBy("rev").last(function(lastChange) {
             // Since startObserving() is called before database open() method, this will be the first database operation enqueued to db.
             // Therefore we know that the retrieved value will be This query will
@@ -360,7 +360,7 @@ export default function Observable(db) {
      * during that changes are being applied and update our lastHeartBeat property while poll() is waiting.
      * When cleanup() (who also is blocked by the sync) wakes up, it won't kill the master node because this
      * heartbeat job will have updated the master node's heartbeat during the long-running sync transaction.
-     * 
+     *
      * If we did not have this heartbeat, and a server send lots of changes that took more than NODE_TIMEOUT
      * (20 seconds), another node waking up after the sync would kill the master node and take over because
      * it would believe it was dead.
@@ -410,7 +410,7 @@ export default function Observable(db) {
         });
     }
 
-    
+
     function cleanup() {
         var ourSyncNode = mySyncNode.node;
         if (!ourSyncNode) return Promise.reject(new Dexie.DatabaseClosedError());
@@ -486,7 +486,7 @@ export default function Observable(db) {
 
 //
 // Static properties and methods
-// 
+//
 
 Observable.latestRevision = {}; // Latest revision PER DATABASE. Example: Observable.latestRevision.FriendsDB = 37;
 Observable.on = Dexie.Events(null, "latestRevisionIncremented", "suicideNurseCall", "intercomm", "beforeunload"); // fire(dbname, value);
@@ -499,6 +499,10 @@ Observable._onStorage = initOnStorage(Observable);
 Observable._onBeforeUnload = function() {
     Observable.on.beforeunload.fire();
 };
+// The way to change predefined values for internal timers like LOCAL_POLL so on.
+// Extend object with key(constant) you want modify and enjoy results
+// Example: {LOCAL_POLL: 1500, NODE_TIMEOUT: 30000}
+Observable._timers = {};
 
 try {
     Observable.localStorageImpl = global.localStorage;

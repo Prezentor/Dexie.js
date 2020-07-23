@@ -114,3 +114,15 @@ Parameters to your callback:
     </body>
 </html>
 ```
+
+
+#### Change internal timers state
+
+```javascript
+import Dexie from 'dexie';
+import 'dexie-observable';
+Dexie.Observable._timers = {
+    LOCAL_POLL: 1500,
+    NODE_TIMEOUT: 30000
+}
+```
